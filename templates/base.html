@@ -278,6 +278,38 @@
             }
         }
         
+        /* Universal image sizing - large images that fill containers */
+        img {
+            width: 100% !important;
+            height: 200px !important;
+            object-fit: cover !important;
+            border-radius: 8px !important;
+            display: block !important;
+            margin: 0 auto !important;
+        }
+        
+        /* Specific overrides for different contexts */
+        .dashboard img {
+            width: 100% !important;
+            height: 120px !important;
+        }
+        
+        .asteroid-detail img {
+            width: 100% !important;
+            height: 300px !important;
+        }
+        
+        .quiz img {
+            width: 100% !important;
+            height: 150px !important;
+        } 0.6;
+            }
+            100% {
+                transform: translateX(200px) translateY(-100px);
+                opacity: 0;
+            }
+        }
+        
         /* Knowledge Popup Styles */
         .knowledge-popup {
             position: fixed;
