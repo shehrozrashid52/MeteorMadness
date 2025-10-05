@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MeteorMatrix - Asteroid Tracker{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap');
+        
+        body {
+            background: 
+                radial-gradient(ellipse at top, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #0a1a2e 100%);
+            min-height: 100vh;
+            font-family: 'Exo 2', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        /* Animated Starfield */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.3), transparent),
+                radial-gradient(1px 1px at 40px 70px, rgba(0,255,255,0.4), transparent),
+                radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.2), transparent),
+                radial-gradient(2px 2px at 130px 80px, rgba(0,255,255,0.3), transparent),
+                radial-gradient(1px 1px at 160px 30px, rgba(255,255,255,0.4), transparent),
+                radial-gradient(1px 1px at 200px 60px, rgba(255,100,255,0.2), transparent),
+                radial-gradient(2px 2px at 250px 90px, rgba(100,255,100,0.3), transparent);
+            background-repeat: repeat;
+            background-size: 300px 200px;
+            animation: starfield 25s linear infinite;
+            pointer-events: none;
+            z-index: -3;
+        }
+        
+        /* Moving Nebula */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(138, 43, 226, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(30, 144, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 40% 80%, rgba(255, 20, 147, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 20%, rgba(0, 255, 127, 0.08) 0%, transparent 50%);
+            animation: nebula 60s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -2;
+        }
+        
+        @keyframes starfield {
+            from { transform: translateY(0px) translateX(0px); }
+            to { transform: translateY(-200px) translateX(-100px); }
+        }
+        
+        @keyframes nebula {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(90deg) scale(1.1); }
+            50% { transform: rotate(180deg) scale(0.9); }
+            75% { transform: rotate(270deg) scale(1.05); }
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+        
+        .glass-effect::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.05) 0%, transparent 50%, rgba(59, 130, 246, 0.05) 100%);
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .glass-effect:hover::before {
+            opacity: 1;
+        }
+        
+        .loading {
+            border: 3px solid rgba(0, 255, 255, 0.1);
+            border-top: 3px solid rgba(0, 255, 255, 0.6);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 
+                0 12px 24px rgba(0, 0, 0, 0.3),
+                0 0 12px rgba(0, 255, 255, 0.15);
+        }
+        
+        .neon-text {
+            font-family: 'Orbitron', monospace;
+            text-shadow: 
+                0 0 1px currentColor,
+                0 0 2px currentColor;
+        }
+        
+        .pulse-glow {
+            animation: pulse-glow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse-glow {
+            from {
+                box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
+            }
+            to {
+                box-shadow: 0 0 12px rgba(0, 255, 255, 0.4);
+            }
+        }
+        
+
+        
+        .hazard-indicator {
+            position: relative;
+        }
+        
+        .hazard-indicator::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            animation: danger-pulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes danger-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        /* Cosmic Particles */
+        .cosmic-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle, #00ffff 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) translateX(0px) scale(1);
+                opacity: 0.3;
+            }
+            25% {
+                transform: translateY(-20px) translateX(10px) scale(1.2);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translateY(-10px) translateX(-15px) scale(0.8);
+                opacity: 1;
+            }
+            75% {
+                transform: translateY(-30px) translateX(5px) scale(1.1);
+                opacity: 0.6;
+            }
+        }
+        
+        /* Enhanced Meteor Trails */
+        .meteor-trail {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background: linear-gradient(45deg, rgba(0, 255, 255, 0.6), rgba(255, 0, 255, 0.6));
+            border-radius: 50%;
+            box-shadow: 0 0 4px rgba(0, 255, 255, 0.3);
+            animation: meteor 8s linear infinite;
+        }
+        
+        @keyframes meteor {
+            0% {
+                transform: translateX(-200px) translateY(-200px) scale(0);
+                opacity: 0;
+            }
+            5% {
+                opacity: 1;
+                transform: translateX(-150px) translateY(-150px) scale(1);
+            }
+            95% {
+                opacity: 1;
+                transform: translateX(calc(100vw + 50px)) translateY(calc(100vh + 50px)) scale(0.5);
+            }
+            100% {
+                transform: translateX(calc(100vw + 100px)) translateY(calc(100vh + 100px)) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        /* Cosmic Dust */
+        .cosmic-dust {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .dust-particle {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            animation: drift 15s linear infinite;
+        }
+        
+        @keyframes drift {
+            0% {
+                transform: translateX(0px) translateY(0px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateX(200px) translateY(-100px);
+                opacity: 0;
+            }
+        }
+        
+        /* Knowledge Popup Styles */
+        .knowledge-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .knowledge-content {
+            background: rgba(10, 26, 46, 0.95);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Pulsing Stars */
+        .pulsing-star {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background: #ffffff;
+            border-radius: 50%;
+            animation: pulse-star 3s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        @keyframes pulse-star {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.5);
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            }
+        }
+        
+        .hologram-effect {
+            background: linear-gradient(45deg, transparent 30%, rgba(0, 255, 255, 0.1) 50%, transparent 70%);
+            background-size: 20px 20px;
+            animation: hologram 2s linear infinite;
+        }
+        
+        @keyframes hologram {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 20px; }
+        }
+        
+        /* Aurora Effect */
+        .aurora {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(0, 255, 255, 0.03) 25%,
+                rgba(255, 0, 255, 0.03) 50%,
+                rgba(0, 255, 127, 0.03) 75%,
+                transparent 100%
+            );
+            animation: aurora-wave 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        @keyframes aurora-wave {
+            0%, 100% {
+                transform: translateX(-100%) skewX(0deg);
+                opacity: 0;
+            }
+            25% {
+                transform: translateX(-50%) skewX(5deg);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateX(0%) skewX(-5deg);
+                opacity: 1;
+            }
+            75% {
+                transform: translateX(50%) skewX(3deg);
+                opacity: 0.7;
+            }
+        }
+        
+        /* Moving Particle System */
+        .particle-system {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .moving-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
+            border-radius: 50%;
+            box-shadow: 0 0 6px rgba(0, 255, 255, 0.6);
+            animation: particle-move 12s linear infinite;
+        }
+        
+        @keyframes particle-move {
+            0% {
+                transform: translateX(0px) translateY(0px) scale(0.5);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+                transform: translateX(20px) translateY(-30px) scale(1);
+            }
+            100% {
+                transform: translateX(0px) translateY(-320px) scale(0.3);
+                opacity: 0;
+            }
+        }         100% {
+                transform: translateX(200px) translateY(-100px);
+                opacity: 0;
+            }
+        }
+        
+        /* Pulsing Stars */
+        .pulsing-star {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background: #ffffff;
+            border-radius: 50%;
+            animation: pulse-star 3s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        @keyframes pulse-star {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.5);
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            }
+        }
+        
+        .hologram-effect {
+            background: linear-gradient(45deg, transparent 30%, rgba(0, 255, 255, 0.1) 50%, transparent 70%);
+            background-size: 20px 20px;
+            animation: hologram 2s linear infinite;
+        }
+        
+        @keyframes hologram {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 20px; }
+        }
+        
+        /* Aurora Effect */
+        .aurora {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(0, 255, 255, 0.03) 25%,
+                rgba(255, 0, 255, 0.03) 50%,
+                rgba(0, 255, 127, 0.03) 75%,
+                transparent 100%
+            );
+            animation: aurora-wave 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        @keyframes aurora-wave {
+            0%, 100% {
+                transform: translateX(-100%) skewX(0deg);
+                opacity: 0;
+            }
+            25% {
+                transform: translateX(-50%) skewX(5deg);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateX(0%) skewX(-5deg);
+                opacity: 1;
+            }
+            75% {
+                transform: translateX(50%) skewX(3deg);
+                opacity: 0.7;
+            }
+        }
+        
+        /* Shooting Stars */
+        .shooting-stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .shooting-star {
+            position: absolute;
+            left: -100px;
+            width: 2px;
+            height: 2px;
+            background: linear-gradient(45deg, #ffffff, #00ffff);
+            border-radius: 50%;
+            animation: shooting-star 4s linear infinite;
+        }
+        
+        .shooting-star::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50px;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.8), transparent);
+            transform: translateX(-50px);
+        }
+        
+        @keyframes shooting-star {
+            0% {
+                transform: translateX(-100px) translateY(0px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(calc(100vw + 100px)) translateY(-200px);
+                opacity: 0;
+            }
+        }
+        
+        /* Galaxy Spiral */
+        .galaxy-spiral {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 300px;
+            height: 300px;
+            margin: -150px 0 0 -150px;
+            background: radial-gradient(
+                ellipse at center,
+                transparent 20%,
+                rgba(138, 43, 226, 0.05) 40%,
+                rgba(30, 144, 255, 0.05) 60%,
+                transparent 80%
+            );
+            border-radius: 50%;
+            animation: galaxy-rotate 120s linear infinite;
+            pointer-events: none;
+            z-index: -2;
+        }
+        
+        .galaxy-spiral::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 200px;
+            margin: -100px 0 0 -100px;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(255, 20, 147, 0.08) 0%,
+                transparent 70%
+            );
+            border-radius: 50%;
+            animation: galaxy-rotate 80s linear infinite reverse;
+        }
+        
+        @keyframes galaxy-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Cosmic Energy Waves */
+        .cosmic-waves {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -2;
+        }
+        
+        .wave {
+            position: absolute;
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: cosmic-wave 8s ease-out infinite;
+        }
+        
+        .wave-1 {
+            top: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            animation-delay: 0s;
+        }
+        
+        .wave-2 {
+            top: 60%;
+            left: 70%;
+            width: 150px;
+            height: 150px;
+            animation-delay: 3s;
+            border-color: rgba(255, 0, 255, 0.1);
+        }
+        
+        .wave-3 {
+            top: 40%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            animation-delay: 6s;
+            border-color: rgba(0, 255, 127, 0.1);
+        }
+        
+        @keyframes cosmic-wave {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        
+        /* Twinkling Effect for Navigation */
+        .nav-item {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+        
+        .nav-item:hover::before {
+            left: 100%;
+        }
+        
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.4), transparent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item:hover::after {
+            width: 100px;
+            height: 100px;
+        }
+        
+        /* Moving Particle System */
+        .particle-system {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .moving-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
+            border-radius: 50%;
+            box-shadow: 0 0 6px rgba(0, 255, 255, 0.6);
+            animation: particle-move 12s linear infinite;
+        }
+        
+        .moving-particle:nth-child(2n) {
+            background: radial-gradient(circle, rgba(255, 0, 255, 0.8), rgba(255, 255, 255, 0.4));
+            box-shadow: 0 0 6px rgba(255, 0, 255, 0.6);
+            animation-duration: 15s;
+        }
+        
+        .moving-particle:nth-child(3n) {
+            background: radial-gradient(circle, rgba(0, 255, 127, 0.8), rgba(255, 255, 255, 0.4));
+            box-shadow: 0 0 6px rgba(0, 255, 127, 0.6);
+            animation-duration: 18s;
+        }
+        
+        @keyframes particle-move {
+            0% {
+                transform: translateX(0px) translateY(0px) scale(0.5);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+                transform: translateX(20px) translateY(-30px) scale(1);
+            }
+            25% {
+                transform: translateX(-40px) translateY(-80px) scale(1.2);
+            }
+            50% {
+                transform: translateX(60px) translateY(-150px) scale(0.8);
+            }
+            75% {
+                transform: translateX(-20px) translateY(-220px) scale(1.1);
+            }
+            90% {
+                opacity: 1;
+                transform: translateX(40px) translateY(-280px) scale(0.9);
+            }
+            100% {
+                transform: translateX(0px) translateY(-320px) scale(0.3);
+                opacity: 0;
+            }
+        }
+        
+        /* Energy Orbs */
+        .energy-orbs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .energy-orb {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), transparent);
+            animation: orb-float 20s ease-in-out infinite;
+        }
+        
+        .orb-1 {
+            top: 20%;
+            left: 10%;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle at 30% 30%, rgba(0, 255, 255, 0.4), transparent);
+            animation-delay: 0s;
+        }
+        
+        .orb-2 {
+            top: 60%;
+            left: 80%;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 0, 255, 0.4), transparent);
+            animation-delay: 4s;
+        }
+        
+        .orb-3 {
+            top: 40%;
+            left: 30%;
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle at 30% 30%, rgba(0, 255, 127, 0.4), transparent);
+            animation-delay: 8s;
+        }
+        
+        .orb-4 {
+            top: 80%;
+            left: 60%;
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 0, 0.4), transparent);
+            animation-delay: 12s;
+        }
+        
+        .orb-5 {
+            top: 30%;
+            left: 70%;
+            width: 7px;
+            height: 7px;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 100, 255, 0.4), transparent);
+            animation-delay: 16s;
+        }
+        
+        @keyframes orb-float {
+            0%, 100% {
+                transform: translateY(0px) translateX(0px) scale(1);
+                opacity: 0.3;
+            }
+            25% {
+                transform: translateY(-50px) translateX(30px) scale(1.3);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translateY(-20px) translateX(-40px) scale(0.7);
+                opacity: 1;
+            }
+            75% {
+                transform: translateY(-80px) translateX(20px) scale(1.1);
+                opacity: 0.6;
+            }
+        }
+    </style>
+</head>
+<body class="text-white">
+    <!-- Cosmic Particles -->
+    <div class="cosmic-particles">
+        <div class="particle" style="top: 10%; left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="top: 20%; left: 80%; animation-delay: 2s;"></div>
+        <div class="particle" style="top: 40%; left: 30%; animation-delay: 4s;"></div>
+        <div class="particle" style="top: 60%; left: 70%; animation-delay: 1s;"></div>
+        <div class="particle" style="top: 80%; left: 20%; animation-delay: 3s;"></div>
+        <div class="particle" style="top: 30%; left: 90%; animation-delay: 5s;"></div>
+    </div>
+    
+    <!-- Meteor Trail Effects -->
+    <div class="meteor-trail" style="top: 10%; left: 10%; animation-delay: 0s;"></div>
+    <div class="meteor-trail" style="top: 30%; left: 80%; animation-delay: 3s;"></div>
+    <div class="meteor-trail" style="top: 60%; left: 20%; animation-delay: 6s;"></div>
+    <div class="meteor-trail" style="top: 15%; left: 60%; animation-delay: 9s;"></div>
+    <div class="meteor-trail" style="top: 70%; left: 50%; animation-delay: 12s;"></div>
+    
+    <!-- Floating Cosmic Dust -->
+    <div class="cosmic-dust">
+        <div class="dust-particle" style="top: 25%; left: 15%; animation-delay: 0s;"></div>
+        <div class="dust-particle" style="top: 45%; left: 85%; animation-delay: 2s;"></div>
+        <div class="dust-particle" style="top: 65%; left: 25%; animation-delay: 4s;"></div>
+        <div class="dust-particle" style="top: 35%; left: 75%; animation-delay: 6s;"></div>
+        <div class="dust-particle" style="top: 55%; left: 45%; animation-delay: 8s;"></div>
+        <div class="dust-particle" style="top: 75%; left: 65%; animation-delay: 10s;"></div>
+    </div>
+    
+    <!-- Pulsing Stars -->
+    <div class="pulsing-star" style="top: 15%; left: 25%; animation-delay: 0s;"></div>
+    <div class="pulsing-star" style="top: 35%; left: 75%; animation-delay: 1s;"></div>
+    <div class="pulsing-star" style="top: 55%; left: 15%; animation-delay: 2s;"></div>
+    <div class="pulsing-star" style="top: 75%; left: 85%; animation-delay: 3s;"></div>
+    <div class="pulsing-star" style="top: 25%; left: 55%; animation-delay: 4s;"></div>
+    <div class="pulsing-star" style="top: 65%; left: 35%; animation-delay: 5s;"></div>
+    
+    <!-- Aurora Effect -->
+    <div class="aurora"></div>
+    
+    <!-- Shooting Stars -->
+    <div class="shooting-stars">
+        <div class="shooting-star" style="top: 20%; animation-delay: 0s;"></div>
+        <div class="shooting-star" style="top: 40%; animation-delay: 8s;"></div>
+        <div class="shooting-star" style="top: 60%; animation-delay: 16s;"></div>
+        <div class="shooting-star" style="top: 80%; animation-delay: 24s;"></div>
+    </div>
+    
+    <!-- Galaxy Spiral -->
+    <div class="galaxy-spiral"></div>
+    
+    <!-- Cosmic Energy Waves -->
+    <div class="cosmic-waves">
+        <div class="wave wave-1"></div>
+        <div class="wave wave-2"></div>
+        <div class="wave wave-3"></div>
+    </div>
+    
+    <!-- Moving Particles System -->
+    <div class="particle-system">
+        <div class="moving-particle" style="top: 10%; left: 5%; animation-delay: 0s;"></div>
+        <div class="moving-particle" style="top: 25%; left: 15%; animation-delay: 1s;"></div>
+        <div class="moving-particle" style="top: 40%; left: 85%; animation-delay: 2s;"></div>
+        <div class="moving-particle" style="top: 55%; left: 25%; animation-delay: 3s;"></div>
+        <div class="moving-particle" style="top: 70%; left: 75%; animation-delay: 4s;"></div>
+        <div class="moving-particle" style="top: 85%; left: 45%; animation-delay: 5s;"></div>
+        <div class="moving-particle" style="top: 15%; left: 65%; animation-delay: 6s;"></div>
+        <div class="moving-particle" style="top: 35%; left: 35%; animation-delay: 7s;"></div>
+        <div class="moving-particle" style="top: 60%; left: 95%; animation-delay: 8s;"></div>
+        <div class="moving-particle" style="top: 80%; left: 15%; animation-delay: 9s;"></div>
+    </div>
+    
+    <!-- Floating Energy Orbs -->
+    <div class="energy-orbs">
+        <div class="energy-orb orb-1"></div>
+        <div class="energy-orb orb-2"></div>
+        <div class="energy-orb orb-3"></div>
+        <div class="energy-orb orb-4"></div>
+        <div class="energy-orb orb-5"></div>
+    </div>
+    
+    <!-- Knowledge Popup -->
+    <div id="knowledgePopup" class="knowledge-popup" style="display: none;">
+        <div class="knowledge-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold text-cyan-400 neon-text">🌌 Space Knowledge Hub</h2>
+                <button onclick="closeKnowledgePopup()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-effect rounded-lg p-4">
+                    <h3 class="text-xl font-semibold text-cyan-400 mb-3">🪨 Asteroids</h3>
+                    <p class="text-gray-300 text-sm mb-2">Rocky objects orbiting the Sun, mostly found in the asteroid belt between Mars and Jupiter.</p>
+                    <ul class="text-xs text-gray-400 space-y-1">
+                        <li>• Size: 1m to 1000km diameter</li>
+                        <li>• Composition: Rock, metal, carbon</li>
+                        <li>• Famous: Ceres, Vesta, Apophis</li>
+                    </ul>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-4">
+                    <h3 class="text-xl font-semibold text-blue-400 mb-3">☄️ Comets</h3>
+                    <p class="text-gray-300 text-sm mb-2">Icy bodies that develop tails when approaching the Sun, originating from outer solar system.</p>
+                    <ul class="text-xs text-gray-400 space-y-1">
+                        <li>• Composition: Ice, dust, rock</li>
+                        <li>• Orbital period: 3-200+ years</li>
+                        <li>• Famous: Halley, Hale-Bopp</li>
+                    </ul>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-4">
+                    <h3 class="text-xl font-semibold text-yellow-400 mb-3">🌠 Meteors</h3>
+                    <p class="text-gray-300 text-sm mb-2">Small particles burning up in Earth's atmosphere, creating bright streaks of light.</p>
+                    <ul class="text-xs text-gray-400 space-y-1">
+                        <li>• Size: Dust grain to boulder</li>
+                        <li>• Speed: 11-72 km/s</li>
+                        <li>• Showers: Perseids, Leonids</li>
+                    </ul>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-4">
+                    <h3 class="text-xl font-semibold text-red-400 mb-3">💥 Impact Events</h3>
+                    <p class="text-gray-300 text-sm mb-2">When space objects collide with Earth, causing craters and environmental effects.</p>
+                    <ul class="text-xs text-gray-400 space-y-1">
+                        <li>• Tunguska: 1908, 2000 km² flattened</li>
+                        <li>• Chelyabinsk: 2013, 1500 injured</li>
+                        <li>• Chicxulub: 66M years ago, dinosaurs</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-6 glass-effect rounded-lg p-4">
+                <h3 class="text-xl font-semibold text-purple-400 mb-3">🛡️ Planetary Defense</h3>
+                <p class="text-gray-300 text-sm">Scientists track potentially hazardous objects and develop deflection methods like NASA's DART mission, which successfully altered asteroid Dimorphos's orbit in 2022.</p>
+            </div>
+            
+            <div class="flex justify-center mt-6">
+                <a href="/education/" class="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-lg hover:from-cyan-500 hover:to-blue-500 transition-all duration-300 font-semibold">
+                    📚 Learn More in Education Center
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    function showKnowledgePopup() {
+        document.getElementById('knowledgePopup').style.display = 'flex';
+    }
+    
+    function closeKnowledgePopup() {
+        document.getElementById('knowledgePopup').style.display = 'none';
+    }
+    
+    // Close popup when clicking outside
+    document.getElementById('knowledgePopup').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeKnowledgePopup();
+        }
+    });
+    </script>
+    
+    <!-- Navigation -->
+    <nav class="glass-effect p-4 mb-6 relative">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-3xl font-bold text-cyan-400 neon-text font-['Orbitron'] pulse-glow">
+                    🪐 MeteorMatrix
+                </h1>
+                <div class="flex flex-col">
+                    <span class="text-cyan-300 text-sm font-semibold">Real-time Asteroid Tracker</span>
+                    <span class="text-xs text-gray-400">Powered by NASA API</span>
+                </div>
+            </div>
+            
+            <div class="flex space-x-2">
+                <a href="{% url 'dashboard:dashboard' %}" class="nav-item px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-cyan-500/30 hover:from-blue-500/30 hover:to-cyan-500/30 transition-all duration-300">
+                    <span class="flex items-center space-x-2">
+                        <span class="text-lg">🌍</span>
+                        <span class="font-semibold">Dashboard</span>
+                    </span>
+                </a>
+                <a href="{% url 'dashboard:asteroids' %}" class="nav-item px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 hover:from-purple-500/30 hover:to-pink-500/30 transition-all duration-300">
+                    <span class="flex items-center space-x-2">
+                        <span class="text-lg">☄️</span>
+                        <span class="font-semibold">Asteroids</span>
+                    </span>
+                </a>
+                <a href="{% url 'simulation:simulation' %}" class="nav-item px-4 py-2 rounded-lg bg-gradient-to-r from-red-600/20 to-orange-600/20 border border-red-500/30 hover:from-red-500/30 hover:to-orange-500/30 transition-all duration-300">
+                    <span class="flex items-center space-x-2">
+                        <span class="text-lg">💥</span>
+                        <span class="font-semibold">Simulation</span>
+                    </span>
+                </a>
+                <a href="/education/" class="nav-item px-4 py-2 rounded-lg bg-gradient-to-r from-green-600/20 to-teal-600/20 border border-green-500/30 hover:from-green-500/30 hover:to-teal-500/30 transition-all duration-300">
+                    <span class="flex items-center space-x-2">
+                        <span class="text-lg">📚</span>
+                        <span class="font-semibold">Education</span>
+                    </span>
+                </a>
+                <a href="{% url 'dashboard:quiz' %}" class="nav-item px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-600/20 to-amber-600/20 border border-yellow-500/30 hover:from-yellow-500/30 hover:to-amber-500/30 transition-all duration-300">
+                    <span class="flex items-center space-x-2">
+                        <span class="text-lg">🧠</span>
+                        <span class="font-semibold">Quiz</span>
+                    </span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Hologram effect overlay -->
+        <div class="absolute inset-0 hologram-effect opacity-20 pointer-events-none rounded-lg"></div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="glass-effect p-6 rounded-lg text-center">
+            <div class="loading mx-auto mb-4"></div>
+            <p class="text-cyan-400">Loading asteroid data...</p>
+        </div>
+    </div>
+
+    <script>
+        function showLoading() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+    </script>
+    
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html>

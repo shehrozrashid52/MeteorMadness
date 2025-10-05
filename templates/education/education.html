@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}Education Center - MeteorMatix{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-5xl font-bold text-cyan-400 mb-4 neon-text font-['Orbitron']">
+            📚 SPACE EDUCATION CENTER 📚
+        </h1>
+        <p class="text-xl text-cyan-300 mb-2">Comprehensive Learning Hub for Asteroids, Comets & Space Science</p>
+        <p class="text-gray-400">Explore the cosmos and understand planetary defense</p>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <a href="#basics" class="glass-effect rounded-lg p-4 text-center card-hover">
+            <div class="text-3xl mb-2">🌌</div>
+            <div class="text-cyan-400 font-semibold">Space Basics</div>
+        </a>
+        <a href="#types" class="glass-effect rounded-lg p-4 text-center card-hover">
+            <div class="text-3xl mb-2">🪨</div>
+            <div class="text-cyan-400 font-semibold">Object Types</div>
+        </a>
+        <a href="#impacts" class="glass-effect rounded-lg p-4 text-center card-hover">
+            <div class="text-3xl mb-2">💥</div>
+            <div class="text-cyan-400 font-semibold">Impact Science</div>
+        </a>
+        <a href="#faqs" class="glass-effect rounded-lg p-4 text-center card-hover">
+            <div class="text-3xl mb-2">❓</div>
+            <div class="text-cyan-400 font-semibold">FAQs</div>
+        </a>
+    </div>
+
+    <!-- Space Basics Section -->
+    <section id="basics" class="glass-effect rounded-xl p-6 mb-8">
+        <h2 class="text-3xl font-bold text-cyan-400 neon-text mb-6">🌌 Space Object Fundamentals</h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="space-y-4">
+                <h3 class="text-xl font-semibold text-yellow-400">What are Near-Earth Objects (NEOs)?</h3>
+                <p class="text-gray-300">Near-Earth Objects are asteroids and comets with orbits that bring them within 195 million kilometers of the Sun, meaning they can pass relatively close to Earth's orbit.</p>
+                
+                <h3 class="text-xl font-semibold text-yellow-400">Size Classification</h3>
+                <ul class="text-gray-300 space-y-2">
+                    <li><strong>Meteoroids:</strong> < 1 meter (burn up in atmosphere)</li>
+                    <li><strong>Small Asteroids:</strong> 1-140 meters (regional damage)</li>
+                    <li><strong>Large Asteroids:</strong> 140m-1km (continental effects)</li>
+                    <li><strong>Global Killers:</strong> > 1km (mass extinction events)</li>
+                </ul>
+            </div>
+            
+            <div class="space-y-4">
+                <h3 class="text-xl font-semibold text-yellow-400">Orbital Mechanics</h3>
+                <p class="text-gray-300">Space objects follow elliptical orbits governed by gravity. Key parameters include:</p>
+                <ul class="text-gray-300 space-y-2">
+                    <li><strong>Semi-major axis:</strong> Average distance from Sun</li>
+                    <li><strong>Eccentricity:</strong> How elliptical the orbit is</li>
+                    <li><strong>Inclination:</strong> Tilt relative to Earth's orbit</li>
+                    <li><strong>Orbital period:</strong> Time to complete one orbit</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Object Types Section -->
+    <section id="types" class="glass-effect rounded-xl p-6 mb-8">
+        <h2 class="text-3xl font-bold text-cyan-400 neon-text mb-6">🪨 Types of Space Objects</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-orange-900/20 rounded-lg p-4 border border-orange-500/30">
+                <h3 class="text-xl font-semibold text-orange-400 mb-3">🌑 Asteroids</h3>
+                <p class="text-gray-300 text-sm mb-3">Rocky or metallic objects left over from solar system formation</p>
+                <ul class="text-xs text-gray-400 space-y-1">
+                    <li>• <strong>C-type:</strong> Carbon-rich, dark (75%)</li>
+                    <li>• <strong>S-type:</strong> Silicate, stony (17%)</li>
+                    <li>• <strong>M-type:</strong> Metallic, iron-nickel (8%)</li>
+                </ul>
+            </div>
+            
+            <div class="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+                <h3 class="text-xl font-semibold text-blue-400 mb-3">☄️ Comets</h3>
+                <p class="text-gray-300 text-sm mb-3">Icy bodies from outer solar system that develop tails near Sun</p>
+                <ul class="text-xs text-gray-400 space-y-1">
+                    <li>• <strong>Short-period:</strong> < 200 years (Jupiter family)</li>
+                    <li>• <strong>Long-period:</strong> > 200 years (Oort cloud)</li>
+                    <li>• <strong>Composition:</strong> Ice, dust, organic compounds</li>
+                </ul>
+            </div>
+            
+            <div class="bg-purple-900/20 rounded-lg p-4 border border-purple-500/30">
+                <h3 class="text-xl font-semibold text-purple-400 mb-3">🌠 Meteors</h3>
+                <p class="text-gray-300 text-sm mb-3">Small particles that create light streaks in atmosphere</p>
+                <ul class="text-xs text-gray-400 space-y-1">
+                    <li>• <strong>Meteor:</strong> Light phenomenon in sky</li>
+                    <li>• <strong>Meteoroid:</strong> Object in space</li>
+                    <li>• <strong>Meteorite:</strong> Survives to ground</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Impact Science Section -->
+    <section id="impacts" class="glass-effect rounded-xl p-6 mb-8">
+        <h2 class="text-3xl font-bold text-cyan-400 neon-text mb-6">💥 Impact Science & Effects</h2>
+        
+        <div class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-xl font-semibold text-red-400 mb-3">Impact Energy</h3>
+                    <p class="text-gray-300 mb-3">Impact energy depends on mass and velocity: E = ½mv²</p>
+                    <div class="bg-red-900/20 rounded-lg p-3 border border-red-500/30">
+                        <p class="text-sm text-gray-300">A 140m asteroid at 20 km/s releases energy equivalent to ~400 megatons of TNT - 8,000 times the Hiroshima bomb!</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-semibold text-yellow-400 mb-3">Damage Effects</h3>
+                    <ul class="text-gray-300 space-y-2 text-sm">
+                        <li><strong>Fireball:</strong> Intense heat and light</li>
+                        <li><strong>Shockwave:</strong> Overpressure damage</li>
+                        <li><strong>Thermal radiation:</strong> Burns and fires</li>
+                        <li><strong>Seismic effects:</strong> Ground shaking</li>
+                        <li><strong>Ejecta:</strong> Debris thrown out</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="bg-gray-900/50 rounded-lg p-4">
+                <h3 class="text-xl font-semibold text-green-400 mb-3">🛡️ Planetary Defense</h3>
+                <p class="text-gray-300 mb-3">Methods to protect Earth from asteroid impacts:</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="text-center">
+                        <div class="text-2xl mb-2">🎯</div>
+                        <h4 class="font-semibold text-cyan-400">Kinetic Impact</h4>
+                        <p class="text-xs text-gray-400">Hit asteroid to change orbit (DART mission)</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl mb-2">🚀</div>
+                        <h4 class="font-semibold text-cyan-400">Gravity Tractor</h4>
+                        <p class="text-xs text-gray-400">Spacecraft uses gravity to pull asteroid</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl mb-2">💥</div>
+                        <h4 class="font-semibold text-cyan-400">Nuclear Option</h4>
+                        <p class="text-xs text-gray-400">Last resort for large threats</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQs Section -->
+    <section id="faqs" class="glass-effect rounded-xl p-6 mb-8">
+        <h2 class="text-3xl font-bold text-cyan-400 neon-text mb-6">❓ Frequently Asked Questions</h2>
+        
+        <div class="space-y-4">
+            <div class="bg-gray-900/30 rounded-lg p-4 border border-gray-600/30">
+                <h3 class="text-lg font-semibold text-yellow-400 mb-2">How likely is an asteroid impact?</h3>
+                <p class="text-gray-300 text-sm">Small impacts (1-10m) happen monthly. City-destroying impacts (140m+) occur every 10,000-100,000 years. Civilization-ending impacts (1km+) happen every few million years.</p>
+            </div>
+            
+            <div class="bg-gray-900/30 rounded-lg p-4 border border-gray-600/30">
+                <h3 class="text-lg font-semibold text-yellow-400 mb-2">How do we detect asteroids?</h3>
+                <p class="text-gray-300 text-sm">Ground-based telescopes like Catalina Sky Survey and LINEAR scan the sky nightly. Space-based missions like NEOWISE use infrared detection. Over 90% of kilometer-sized NEOs have been found.</p>
+            </div>
+            
+            <div class="bg-gray-900/30 rounded-lg p-4 border border-gray-600/30">
+                <h3 class="text-lg font-semibold text-yellow-400 mb-2">What was the Tunguska event?</h3>
+                <p class="text-gray-300 text-sm">In 1908, an asteroid or comet ~60m across exploded over Siberia, flattening 2,000 km² of forest. It released energy equivalent to 10-15 megatons of TNT but caused no direct human casualties due to the remote location.</p>
+            </div>
+            
+            <div class="bg-gray-900/30 rounded-lg p-4 border border-gray-600/30">
+                <h3 class="text-lg font-semibold text-yellow-400 mb-2">Could we stop a "planet killer" asteroid?</h3>
+                <p class="text-gray-300 text-sm">With enough warning time (years to decades), yes. Multiple spacecraft could be sent to gradually deflect the asteroid. The key is early detection - we need at least 5-10 years for large objects.</p>
+            </div>
+            
+            <div class="bg-gray-900/30 rounded-lg p-4 border border-gray-600/30">
+                <h3 class="text-lg font-semibold text-yellow-400 mb-2">What happened to the dinosaurs?</h3>
+                <p class="text-gray-300 text-sm">66 million years ago, a 10-15km asteroid hit the Yucatan Peninsula, creating the Chicxulub crater. The impact caused global fires, tsunamis, and a "nuclear winter" that led to the extinction of non-avian dinosaurs.</p>
+            </div>
+            
+            <div class="bg-gray-900/30 rounded-lg p-4 border border-gray-600/30">
+                <h3 class="text-lg font-semibold text-yellow-400 mb-2">How accurate are impact predictions?</h3>
+                <p class="text-gray-300 text-sm">For well-observed asteroids, orbital predictions are very accurate over decades. However, small forces like solar radiation pressure and gravitational perturbations can cause uncertainty over longer periods.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resources Section -->
+    <section class="glass-effect rounded-xl p-6">
+        <h2 class="text-3xl font-bold text-cyan-400 neon-text mb-6">📖 Additional Resources</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="text-xl font-semibold text-purple-400 mb-3">🔬 Research Organizations</h3>
+                <ul class="text-gray-300 space-y-2 text-sm">
+                    <li>• NASA Planetary Defense Coordination Office</li>
+                    <li>• ESA Space Situational Awareness</li>
+                    <li>• Minor Planet Center (MPC)</li>
+                    <li>• Catalina Sky Survey</li>
+                    <li>• LINEAR (MIT Lincoln Laboratory)</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="text-xl font-semibold text-purple-400 mb-3">🚀 Space Missions</h3>
+                <ul class="text-gray-300 space-y-2 text-sm">
+                    <li>• DART (Double Asteroid Redirection Test)</li>
+                    <li>• OSIRIS-REx (Bennu sample return)</li>
+                    <li>• Hayabusa2 (Ryugu sample return)</li>
+                    <li>• NEAR Shoemaker (Eros orbiter)</li>
+                    <li>• Dawn (Vesta and Ceres orbiter)</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+// Smooth scrolling for navigation links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+            behavior: 'smooth'
+        });
+    });
+});
+</script>
+{% endblock %}

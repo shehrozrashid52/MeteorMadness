@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+
+{% block title %}Impact Simulation - MeteorMatix{% endblock %}
+
+{% block content %}
+<div class="text-center mb-8 relative">
+    <h2 class="text-5xl font-bold text-cyan-400 mb-4 neon-text font-['Orbitron']">
+        💥 IMPACT SIMULATION LAB 💥
+    </h2>
+    <p class="text-xl text-cyan-300 mb-2">Advanced Asteroid Impact Calculator</p>
+    <p class="text-gray-400">Predict catastrophic effects using real physics</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Input Form -->
+    <div class="glass-effect rounded-lg p-6">
+        <h3 class="text-xl font-semibold text-cyan-400 mb-6">Impact Parameters</h3>
+        
+        <form id="simulation-form" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Asteroid Diameter (meters)</label>
+                <input type="number" id="diameter" value="100" min="1" max="10000" 
+                       class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-400 focus:outline-none">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Velocity (km/s)</label>
+                <input type="number" id="velocity" value="20" min="5" max="70" step="0.1"
+                       class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-400 focus:outline-none">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Density (kg/m³)</label>
+                <select id="density" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-cyan-400 focus:outline-none">
+                    <option value="2600">Rocky (2600 kg/m³)</option>
+                    <option value="7800">Iron (7800 kg/m³)</option>
+                    <option value="1500">Carbonaceous (1500 kg/m³)</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Impact Angle: <span id="angle-value">45°</span></label>
+                <input type="range" id="impact-angle" value="45" min="15" max="90" 
+                       class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Impact Location</label>
+                <div class="flex gap-4">
+                    <label class="flex items-center space-x-2">
+                        <input type="radio" name="location" value="land" checked class="text-cyan-400">
+                        <span class="text-white">🏔️ Land</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="radio" name="location" value="ocean" class="text-cyan-400">
+                        <span class="text-white">🌊 Ocean</span>
+                    </label>
+                </div>
+            </div>
+            
+            <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 rounded-lg text-white font-semibold">
+                💥 Calculate Impact
+            </button>
+        </form>
+    </div>
+    
+    <!-- Results -->
+    <div class="glass-effect rounded-lg p-6">
+        <h3 class="text-xl font-semibold text-cyan-400 mb-6">Impact Results</h3>
+        
+        <div id="results" class="hidden">
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="text-center p-4 bg-gray-800 rounded-lg">
+                    <p class="text-cyan-400 text-sm">Impact Energy</p>
+                    <p id="energy" class="text-xl font-bold text-white">-</p>
+                    <p class="text-xs text-gray-400">Joules</p>
+                </div>
+                
+                <div class="text-center p-4 bg-gray-800 rounded-lg">
+                    <p class="text-cyan-400 text-sm">TNT Equivalent</p>
+                    <p id="tnt" class="text-xl font-bold text-orange-400">-</p>
+                    <p class="text-xs text-gray-400">Megatons</p>
+                </div>
+                
+                <div class="text-center p-4 bg-gray-800 rounded-lg">
+                    <p class="text-cyan-400 text-sm">Crater Diameter</p>
+                    <p id="crater" class="text-xl font-bold text-red-400">-</p>
+                    <p class="text-xs text-gray-400">Kilometers</p>
+                </div>
+                
+                <div class="text-center p-4 bg-gray-800 rounded-lg">
+                    <p class="text-cyan-400 text-sm">Seismic Magnitude</p>
+                    <p id="magnitude" class="text-xl font-bold text-yellow-400">-</p>
+                    <p class="text-xs text-gray-400">Richter Scale</p>
+                </div>
+            </div>
+            
+            <div class="p-4 bg-gray-800 rounded-lg mb-4">
+                <p class="text-cyan-400 text-sm mb-2">Impact Classification</p>
+                <p id="classification" class="text-lg font-semibold text-white">-</p>
+            </div>
+            
+            <div id="tsunami-info" class="p-4 bg-blue-900 rounded-lg hidden">
+                <p class="text-cyan-400 text-sm mb-2">Tsunami Effects</p>
+                <p id="tsunami" class="text-lg font-semibold text-blue-400">-</p>
+            </div>
+        </div>
+        
+        <div id="no-results" class="text-center py-12">
+            <div class="text-6xl mb-4">💥</div>
+            <p class="text-gray-400">Enter parameters and calculate to see impact effects</p>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Simulations -->
+<div class="mt-8 glass-effect rounded-lg p-6">
+    <h3 class="text-xl font-semibold text-cyan-400 mb-6">Recent Simulations</h3>
+    <div id="recent-simulations" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Recent simulations will be displayed here -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let recentSimulations = JSON.parse(localStorage.getItem('recentSimulations') || '[]');
+
+// Update angle display
+document.getElementById('impact-angle').addEventListener('input', function() {
+    document.getElementById('angle-value').textContent = this.value + '°';
+});
+
+// Handle form submission
+document.getElementById('simulation-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    calculateImpact();
+});
+
+function calculateImpact() {
+    const diameter = parseFloat(document.getElementById('diameter').value);
+    const velocity = parseFloat(document.getElementById('velocity').value);
+    const density = parseFloat(document.getElementById('density').value);
+    const angle = parseFloat(document.getElementById('impact-angle').value);
+    const location = document.querySelector('input[name="location"]:checked').value;
+    
+    showLoading();
+    
+    // Simulate API call delay
+    setTimeout(() => {
+        const results = performCalculations(diameter, velocity, density, angle, location);
+        displayResults(results);
+        saveSimulation(results);
+        hideLoading();
+    }, 1000);
+}
+
+function performCalculations(diameter, velocity, density, angle, location) {
+    // Calculate mass
+    const radius = diameter / 2;
+    const volume = (4/3) * Math.PI * Math.pow(radius, 3);
+    const mass = volume * density;
+    
+    // Calculate kinetic energy
+    const velocityMs = velocity * 1000;
+    const kineticEnergy = 0.5 * mass * Math.pow(velocityMs, 2);
+    
+    // TNT equivalent (1 ton TNT = 4.184 × 10^9 J)
+    const tntMegatons = kineticEnergy / (4.184e15);
+    
+    // Crater diameter (simplified formula)
+    const craterDiameter = 1.8 * Math.pow(kineticEnergy, 0.25) / 1000;
+    
+    // Seismic magnitude
+    const magnitude = Math.log10(kineticEnergy) - 4.8;
+    
+    // Impact classification
+    let classification;
+    if (tntMegatons < 0.001) classification = "Minimal - Small meteorite";
+    else if (tntMegatons < 0.1) classification = "Minor - Local damage";
+    else if (tntMegatons < 10) classification = "Moderate - Regional effects";
+    else if (tntMegatons < 1000) classification = "Major - Continental effects";
+    else classification = "Catastrophic - Global effects";
+    
+    // Tsunami height (if ocean impact)
+    const tsunamiHeight = location === 'ocean' ? craterDiameter * 100 : 0;
+    
+    return {
+        diameter,
+        velocity,
+        density,
+        angle,
+        location,
+        mass,
+        kineticEnergy,
+        tntMegatons,
+        craterDiameter,
+        magnitude,
+        classification,
+        tsunamiHeight,
+        timestamp: new Date().toLocaleString()
+    };
+}
+
+function displayResults(results) {
+    document.getElementById('results').classList.remove('hidden');
+    document.getElementById('no-results').classList.add('hidden');
+    
+    document.getElementById('energy').textContent = results.kineticEnergy.toExponential(2);
+    document.getElementById('tnt').textContent = results.tntMegatons.toFixed(3);
+    document.getElementById('crater').textContent = results.craterDiameter.toFixed(2);
+    document.getElementById('magnitude').textContent = results.magnitude.toFixed(1);
+    document.getElementById('classification').textContent = results.classification;
+    
+    if (results.location === 'ocean') {
+        document.getElementById('tsunami-info').classList.remove('hidden');
+        document.getElementById('tsunami').textContent = `Wave height: ${results.tsunamiHeight.toFixed(1)} meters`;
+    } else {
+        document.getElementById('tsunami-info').classList.add('hidden');
+    }
+}
+
+function saveSimulation(results) {
+    recentSimulations.unshift(results);
+    if (recentSimulations.length > 6) {
+        recentSimulations = recentSimulations.slice(0, 6);
+    }
+    localStorage.setItem('recentSimulations', JSON.stringify(recentSimulations));
+    displayRecentSimulations();
+}
+
+function displayRecentSimulations() {
+    const container = document.getElementById('recent-simulations');
+    container.innerHTML = '';
+    
+    if (recentSimulations.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 col-span-full text-center">No recent simulations</p>';
+        return;
+    }
+    
+    recentSimulations.forEach((sim, index) => {
+        const card = document.createElement('div');
+        card.className = 'glass-effect p-4 rounded-lg';
+        card.innerHTML = `
+            <h4 class="font-semibold text-white mb-2">Simulation ${index + 1}</h4>
+            <div class="text-sm space-y-1">
+                <p class="text-gray-300">Diameter: ${sim.diameter}m</p>
+                <p class="text-gray-300">Velocity: ${sim.velocity} km/s</p>
+                <p class="text-gray-300">TNT: ${sim.tntMegatons.toFixed(3)} MT</p>
+                <p class="text-gray-300">Location: ${sim.location}</p>
+                <p class="text-xs text-gray-400">${sim.timestamp}</p>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+// Load recent simulations on page load
+document.addEventListener('DOMContentLoaded', function() {
+    displayRecentSimulations();
+});
+</script>
+{% endblock %}

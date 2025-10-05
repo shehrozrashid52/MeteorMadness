@@ -1,0 +1,504 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - MeteorMatix{% endblock %}
+
+{% block content %}
+<div class="text-center mb-8 relative">
+    <h2 class="text-5xl font-bold text-cyan-400 mb-4 neon-text font-['Orbitron']">
+        🌌 COSMIC THREAT MONITOR 🌌
+    </h2>
+    <p class="text-xl text-cyan-300 mb-2">Real-time Asteroid, Meteor & Comet Tracking</p>
+    <p class="text-gray-400">Powered by NASA Near-Earth Object API & Space Agencies</p>
+    <div class="mt-4 flex justify-center space-x-6 text-sm">
+        <span class="flex items-center space-x-2 text-red-400">
+            <span class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+            <span>Potentially Hazardous</span>
+        </span>
+        <span class="flex items-center space-x-2 text-green-400">
+            <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+            <span>Safe Objects</span>
+        </span>
+        <span class="flex items-center space-x-2 text-blue-400">
+            <span class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></span>
+            <span>Comets</span>
+        </span>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="glass-effect rounded-lg p-6 text-center">
+        <div class="text-3xl mb-2">☄️</div>
+        <h3 class="text-xl font-semibold text-cyan-400">Active Tracking</h3>
+        <p id="total-count" class="text-2xl font-bold text-white">-</p>
+        <p class="text-gray-400">Asteroids monitored</p>
+    </div>
+    
+    <div class="glass-effect rounded-lg p-6 text-center">
+        <div class="text-3xl mb-2">⚠️</div>
+        <h3 class="text-xl font-semibold text-orange-400">Potentially Hazardous</h3>
+        <p id="hazardous-count" class="text-2xl font-bold text-orange-400">-</p>
+        <p class="text-gray-400">Require monitoring</p>
+    </div>
+    
+    <div class="glass-effect rounded-lg p-6 text-center">
+        <div class="text-3xl mb-2">🛡️</div>
+        <h3 class="text-xl font-semibold text-green-400">Safe Objects</h3>
+        <p id="safe-count" class="text-2xl font-bold text-green-400">-</p>
+        <p class="text-gray-400">No immediate threat</p>
+    </div>
+</div>
+
+<!-- Live Data Feed -->
+<div class="glass-effect rounded-lg p-6">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h3 class="text-2xl font-semibold text-cyan-400">🔴 Live Asteroid Feed</h3>
+            <div class="flex items-center gap-2">
+                <div id="status-indicator" class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                <p id="data-source" class="text-sm text-gray-400">Loading data source...</p>
+            </div>
+            <p id="last-updated" class="text-xs text-gray-500">Last updated: Loading...</p>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="loadAsteroidData()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg text-white">
+                🔄 Refresh Data
+            </button>
+            <button id="auto-refresh-btn" onclick="toggleAutoRefresh()" class="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-white text-sm">
+                ⏸️ Auto-refresh ON
+            </button>
+        </div>
+    </div>
+    
+    <div id="asteroid-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Asteroid cards will be loaded here -->
+    </div>
+    
+    <div id="no-data" class="text-center py-12 hidden">
+        <div class="text-6xl mb-4">🌌</div>
+        <p class="text-gray-400 text-lg">Loading asteroid data...</p>
+        <button onclick="loadAsteroidData()" class="mt-4 px-6 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg text-white">
+            Load Data
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let asteroidData = [];
+
+function loadAsteroidData() {
+    showLoading();
+    document.getElementById('no-data').classList.add('hidden');
+    
+    // Update status indicator
+    const statusIndicator = document.getElementById('status-indicator');
+    statusIndicator.className = 'w-2 h-2 bg-yellow-400 rounded-full animate-pulse';
+    
+    // Set a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+        hideLoading();
+        statusIndicator.className = 'w-2 h-2 bg-red-400 rounded-full';
+        showError('Request timed out. Please try again.');
+    }, 3000); // 3 second timeout
+    
+    fetch('/api/neo-data/')
+        .then(response => {
+            clearTimeout(timeoutId);
+            return response.json();
+        })
+        .then(data => {
+            hideLoading();
+            
+            if (data.success) {
+                asteroidData = data.asteroids;
+                displayAsteroids(asteroidData);
+                updateStatistics(asteroidData);
+                
+                // Update status indicator to green (success)
+                statusIndicator.className = 'w-2 h-2 bg-green-400 rounded-full';
+                
+                // Show data source and last updated
+                if (data.source) {
+                    document.getElementById('data-source').textContent = `Source: ${data.source}`;
+                    console.log('Data source:', data.source);
+                }
+                if (data.last_updated) {
+                    document.getElementById('last-updated').textContent = `Last updated: ${data.last_updated}`;
+                }
+            } else {
+                showError('Failed to load asteroid data: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            clearTimeout(timeoutId);
+            hideLoading();
+            statusIndicator.className = 'w-2 h-2 bg-red-400 rounded-full';
+            showError('Network error: ' + error.message);
+        });
+}
+
+function displayAsteroids(asteroids) {
+    const grid = document.getElementById('asteroid-grid');
+    grid.innerHTML = '';
+    
+    if (asteroids.length === 0) {
+        document.getElementById('no-data').classList.remove('hidden');
+        return;
+    }
+    
+    asteroids.forEach(asteroid => {
+        const card = createAsteroidCard(asteroid);
+        grid.appendChild(card);
+    });
+}
+
+function createAsteroidCard(asteroid) {
+    const card = document.createElement('div');
+    card.className = 'glass-effect rounded-lg p-4 card-hover cursor-pointer';
+    card.onclick = () => showAsteroidDetails(asteroid);
+    
+    const getTypeIcon = (type) => {
+        switch(type) {
+            case 'Comet': return '🌌';
+            case 'Meteor': return '🌠';
+            case 'Meteor/Asteroid': return '💥';
+            case 'Dwarf Planet': return '🪐';
+            case 'Interstellar Object': return '✨';
+            default: return '☄️';
+        }
+    };
+    
+    const hazardBadge = asteroid.is_hazardous 
+        ? '<span class="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs px-3 py-1 rounded-full border border-red-400 shadow-lg hazard-indicator">⚠️ HAZARDOUS</span>'
+        : '<span class="bg-gradient-to-r from-green-500 to-green-600 text-white text-xs px-3 py-1 rounded-full border border-green-400 shadow-lg">✅ SAFE</span>';
+    
+    const typeBadge = `<span class="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full border border-blue-400">${getTypeIcon(asteroid.type)} ${asteroid.type || 'Asteroid'}</span>`;
+    
+    card.innerHTML = `
+        <div class="flex justify-between items-start mb-3">
+            <h4 class="font-semibold text-white text-lg neon-text">${asteroid.name}</h4>
+            <div class="flex flex-col space-y-1">
+                ${typeBadge}
+                ${hazardBadge}
+            </div>
+        </div>
+        
+        <img src="${asteroid.image_url}" alt="${asteroid.name}" 
+             class="w-full h-32 object-cover rounded-lg mb-3" 
+             onerror="handleImageError(this, '${asteroid.name}')">
+        
+        <div class="space-y-2 text-sm">
+            <p class="text-gray-300">
+                <span class="text-cyan-400">Diameter:</span> 
+                ${asteroid.diameter_min.toFixed(3)} - ${asteroid.diameter_max.toFixed(3)} km
+            </p>
+            <p class="text-gray-300">
+                <span class="text-cyan-400">Velocity:</span> 
+                ${asteroid.velocity_kms.toFixed(2)} km/s
+            </p>
+            <p class="text-gray-300">
+                <span class="text-cyan-400">Distance:</span> 
+                ${(asteroid.miss_distance_km / 1000000).toFixed(2)} million km
+            </p>
+            <p class="text-gray-300">
+                <span class="text-cyan-400">Approach:</span> 
+                ${asteroid.close_approach_date}
+            </p>
+        </div>
+        
+        <div class="mt-3 pt-3 border-t border-gray-600">
+            <p class="text-xs text-gray-400 line-clamp-2">${asteroid.description}</p>
+            ${asteroid.last_updated ? `<p class="text-xs text-gray-500 mt-1">Updated: ${asteroid.last_updated}</p>` : ''}
+        </div>
+    `;
+    
+    return card;
+}
+
+function updateStatistics(asteroids) {
+    const total = asteroids.length;
+    const hazardous = asteroids.filter(a => a.is_hazardous).length;
+    const safe = total - hazardous;
+    
+    document.getElementById('total-count').textContent = total;
+    document.getElementById('hazardous-count').textContent = hazardous;
+    document.getElementById('safe-count').textContent = safe;
+}
+
+function showAsteroidDetails(asteroid) {
+    // Create detailed analysis modal
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4';
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
+    
+    // Calculate impact analysis
+    const diameter = (asteroid.diameter_min + asteroid.diameter_max) / 2;
+    const velocity = asteroid.velocity_kms;
+    const mass = Math.pow(diameter * 500, 3) * 2.6 * 1000; // kg
+    const kineticEnergy = 0.5 * mass * Math.pow(velocity * 1000, 2);
+    const tntEquivalent = kineticEnergy / (4.184e9);
+    const craterDiameter = 1.8 * Math.pow(diameter * 1000, 0.78) * Math.pow(velocity, 0.44);
+    const impactProbability = asteroid.miss_distance_km < 100000 ? 
+        Math.max(0.1, 50 * (100000 - asteroid.miss_distance_km) / 100000) : 
+        Math.max(0.001, 10 / (asteroid.miss_distance_km / 100000));
+    
+    // Environmental impact
+    let impactScenario, severity, casualties, economicDamage;
+    if (diameter < 0.01) {
+        impactScenario = 'Atmospheric Breakup';
+        severity = 'Minimal';
+        casualties = 0;
+        economicDamage = 0;
+    } else if (diameter < 0.05) {
+        impactScenario = 'Airburst Explosion';
+        severity = 'Local';
+        casualties = Math.floor(Math.random() * 1000);
+        economicDamage = Math.floor(Math.random() * 100);
+    } else if (diameter < 0.15) {
+        impactScenario = 'Regional Devastation';
+        severity = 'Regional';
+        casualties = Math.floor(Math.random() * 100000);
+        economicDamage = Math.floor(Math.random() * 10000);
+    } else if (diameter < 1.0) {
+        impactScenario = 'Continental Destruction';
+        severity = 'Continental';
+        casualties = Math.floor(Math.random() * 10000000);
+        economicDamage = Math.floor(Math.random() * 1000000);
+    } else {
+        impactScenario = 'Global Catastrophe';
+        severity = 'Global';
+        casualties = Math.floor(Math.random() * 1000000000);
+        economicDamage = Math.floor(Math.random() * 10000000);
+    }
+    
+    modal.innerHTML = `
+        <div class="glass-effect rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <img src="${asteroid.image_url}" alt="${asteroid.name}" 
+                         class="w-16 h-16 rounded-full object-cover border-2 border-cyan-400 pulse-glow" 
+                         onerror="handleImageError(this, '${asteroid.name}')">
+                    <div>
+                        <h3 class="text-3xl font-bold text-cyan-400 neon-text">${asteroid.name}</h3>
+                        <p class="text-lg text-gray-300">${asteroid.type || 'Asteroid'}</p>
+                    </div>
+                </div>
+                <button onclick="this.closest('.fixed').remove()" 
+                        class="text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="glass-effect rounded-lg p-3 text-center">
+                    <div class="text-xl font-bold text-cyan-400">${diameter.toFixed(3)} km</div>
+                    <div class="text-xs text-gray-400">Diameter</div>
+                </div>
+                <div class="glass-effect rounded-lg p-3 text-center">
+                    <div class="text-xl font-bold text-yellow-400">${velocity.toFixed(2)} km/s</div>
+                    <div class="text-xs text-gray-400">Velocity</div>
+                </div>
+                <div class="glass-effect rounded-lg p-3 text-center">
+                    <div class="text-xl font-bold text-green-400">${(asteroid.miss_distance_km / 1000000).toFixed(2)}M km</div>
+                    <div class="text-xs text-gray-400">Distance</div>
+                </div>
+                <div class="glass-effect rounded-lg p-3 text-center">
+                    <div class="text-xl font-bold text-${asteroid.is_hazardous ? 'red' : 'green'}-400">
+                        ${asteroid.is_hazardous ? 'HAZARDOUS' : 'SAFE'}
+                    </div>
+                    <div class="text-xs text-gray-400">Status</div>
+                </div>
+            </div>
+            
+            <!-- Impact Analysis -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="glass-effect rounded-lg p-4">
+                    <h4 class="text-xl font-bold text-red-400 mb-4 flex items-center">
+                        <span class="text-2xl mr-2">💥</span> Impact Analysis
+                    </h4>
+                    
+                    <div class="space-y-3">
+                        <div class="bg-red-900/20 rounded-lg p-3 border border-red-500/30">
+                            <div class="text-sm text-red-300">Impact Probability</div>
+                            <div class="text-2xl font-bold text-red-400">${impactProbability.toFixed(4)}%</div>
+                            <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                                <div class="bg-gradient-to-r from-green-500 to-red-500 h-2 rounded-full" 
+                                     style="width: ${Math.min(100, impactProbability * 10)}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div class="bg-orange-900/20 rounded p-2 border border-orange-500/30">
+                                <div class="text-orange-300">Mass</div>
+                                <div class="font-bold text-orange-400">${mass.toExponential(2)} kg</div>
+                            </div>
+                            <div class="bg-yellow-900/20 rounded p-2 border border-yellow-500/30">
+                                <div class="text-yellow-300">TNT Equivalent</div>
+                                <div class="font-bold text-yellow-400">${tntEquivalent.toExponential(2)} tons</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-purple-900/20 rounded-lg p-3 border border-purple-500/30">
+                            <div class="text-purple-300 font-semibold mb-2">Crater Specifications</div>
+                            <div class="text-sm">
+                                <div>Diameter: <span class="text-purple-400 font-bold">${craterDiameter.toFixed(0)}m</span></div>
+                                <div>Depth: <span class="text-purple-400 font-bold">${(craterDiameter/5).toFixed(0)}m</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-4">
+                    <h4 class="text-xl font-bold text-green-400 mb-4 flex items-center">
+                        <span class="text-2xl mr-2">🌍</span> Environmental Impact
+                    </h4>
+                    
+                    <div class="space-y-3">
+                        <div class="bg-${severity === 'Global' ? 'red' : severity === 'Continental' ? 'orange' : 'yellow'}-900/20 rounded-lg p-3 border border-${severity === 'Global' ? 'red' : severity === 'Continental' ? 'orange' : 'yellow'}-500/30">
+                            <div class="text-${severity === 'Global' ? 'red' : severity === 'Continental' ? 'orange' : 'yellow'}-300">Impact Scenario</div>
+                            <div class="text-xl font-bold text-${severity === 'Global' ? 'red' : severity === 'Continental' ? 'orange' : 'yellow'}-400">${impactScenario}</div>
+                            <div class="text-sm text-gray-300 mt-1">Severity: ${severity}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-2 text-sm">
+                            <div class="bg-red-900/20 rounded p-2 border border-red-500/30">
+                                <div class="text-red-300">Estimated Casualties</div>
+                                <div class="font-bold text-red-400">${casualties.toLocaleString()}</div>
+                            </div>
+                            <div class="bg-yellow-900/20 rounded p-2 border border-yellow-500/30">
+                                <div class="text-yellow-300">Economic Damage</div>
+                                <div class="font-bold text-yellow-400">$${economicDamage.toLocaleString()}M USD</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-900/20 rounded-lg p-3 border border-blue-500/30">
+                            <div class="text-blue-300 font-semibold mb-2">Climate Effects</div>
+                            <div class="text-sm space-y-1">
+                                <div>Dust Injection: <span class="text-blue-400 font-bold">${(diameter * 100).toFixed(0)}M tons</span></div>
+                                <div>Temperature Drop: <span class="text-blue-400 font-bold">${(diameter * 2).toFixed(1)}°C</span></div>
+                                <div>Recovery Time: <span class="text-blue-400 font-bold">${(diameter * 100).toFixed(0)} years</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Description -->
+            <div class="mt-6 glass-effect rounded-lg p-4">
+                <h4 class="text-lg font-semibold text-cyan-400 mb-2">Description</h4>
+                <p class="text-gray-300">${asteroid.description}</p>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex justify-center space-x-4 mt-6">
+                <button onclick="window.location.href='/asteroid/${asteroid.id}/'" 
+                        class="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg hover:from-blue-500 hover:to-cyan-500 transition-all duration-300 font-semibold">
+                    📊 Full Analysis
+                </button>
+                <button onclick="window.location.href='/simulation/'" 
+                        class="px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 rounded-lg hover:from-red-500 hover:to-orange-500 transition-all duration-300 font-semibold">
+                    🎯 Run Simulation
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+function showError(message) {
+    const grid = document.getElementById('asteroid-grid');
+    grid.innerHTML = `
+        <div class="col-span-full text-center py-12">
+            <div class="text-6xl mb-4">❌</div>
+            <p class="text-red-400 text-lg mb-4">Error Loading Data</p>
+            <p class="text-gray-400 mb-4">${message}</p>
+            <button onclick="loadAsteroidData()" class="px-6 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg text-white">
+                Try Again
+            </button>
+        </div>
+    `;
+}
+
+// Image error handling with multiple fallbacks
+function handleImageError(img, asteroidName) {
+    const fallbackImages = [
+        `https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&h=300&fit=crop&q=80`, // Space
+        `https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=400&h=300&fit=crop&q=80`, // Nebula
+        `https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop&q=80`, // Galaxy
+        `https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400&h=300&fit=crop&q=80`, // Stars
+        `https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=400&h=300&fit=crop&q=80`  // Space view
+    ];
+    
+    // Use hash of asteroid name to get consistent fallback
+    const nameHash = asteroidName.split('').reduce((a, b) => {
+        a = ((a << 5) - a) + b.charCodeAt(0);
+        return a & a;
+    }, 0);
+    
+    const fallbackIndex = Math.abs(nameHash) % fallbackImages.length;
+    img.src = fallbackImages[fallbackIndex];
+    
+    // Prevent infinite error loop
+    img.onerror = null;
+}
+
+// Auto-refresh functionality
+let autoRefreshInterval;
+let isAutoRefreshEnabled = true;
+
+function toggleAutoRefresh() {
+    isAutoRefreshEnabled = !isAutoRefreshEnabled;
+    const button = document.getElementById('auto-refresh-btn');
+    
+    if (isAutoRefreshEnabled) {
+        button.textContent = '⏸️ Auto-refresh ON';
+        button.className = 'px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-white text-sm';
+        startAutoRefresh();
+    } else {
+        button.textContent = '▶️ Auto-refresh OFF';
+        button.className = 'px-3 py-1 bg-gray-600 hover:bg-gray-700 rounded text-white text-sm';
+        stopAutoRefresh();
+    }
+}
+
+function startAutoRefresh() {
+    if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+    // Refresh every 5 minutes
+    autoRefreshInterval = setInterval(loadAsteroidData, 300000);
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+    }
+}
+
+// Load data immediately when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadAsteroidData();
+    startAutoRefresh();
+});
+
+function showLoading() {
+    document.getElementById('asteroid-grid').innerHTML = '<div class="col-span-full text-center py-12"><div class="loading mx-auto"></div><p class="text-gray-400 mt-4">Loading asteroids...</p></div>';
+}
+
+function hideLoading() {
+    // Loading will be replaced by actual content
+}
+
+// Stop auto-refresh when page is hidden
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        stopAutoRefresh();
+    } else if (isAutoRefreshEnabled) {
+        startAutoRefresh();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ asteroid.name }} Orbit - MeteorMatix{% endblock %}
+{% block page_title %}{{ asteroid.name }} Orbit Visualization{% endblock %}
+
+{% block content %}
+<div class="glass-effect rounded-lg p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold text-cyan-400">{{ asteroid.name }} Orbital Path</h3>
+        <a href="{% url 'dashboard:asteroid_detail' asteroid.neo_id %}" 
+           class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white">
+            ← Back to Details
+        </a>
+    </div>
+    
+    <div id="orbit-container" class="w-full h-96 bg-black rounded-lg overflow-hidden relative flex items-center justify-center">
+        <div class="text-center">
+            <div class="text-6xl mb-4 animate-bounce">🌌</div>
+            <p class="text-cyan-400 text-xl">{{ asteroid.name }}</p>
+            <p class="text-gray-400">Orbit visualization coming soon</p>
+        </div>
+        
+        <div class="absolute top-4 left-4 glass-effect p-3 rounded-lg">
+            <p class="text-sm text-cyan-400">{{ asteroid.name }}</p>
+            <p class="text-xs text-gray-400">NEO ID: {{ asteroid.neo_id }}</p>
+        </div>
+        
+        <div class="absolute top-4 right-4 glass-effect p-3 rounded-lg">
+            <p class="text-xs text-cyan-400 mb-1">Next Approach:</p>
+            {% if close_approaches.first %}
+            <p class="text-xs text-white">{{ close_approaches.first.approach_date|date:"M d, Y" }}</p>
+            <p class="text-xs text-gray-400">{{ close_approaches.first.miss_distance_km|floatformat:0 }} km</p>
+            {% else %}
+            <p class="text-xs text-gray-400">No data available</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Orbital Data -->
+    <div class="glass-effect rounded-lg p-6">
+        <h4 class="text-lg font-semibold text-cyan-400 mb-4">Orbital Information</h4>
+        
+        <div class="space-y-3">
+            {% if asteroid.diameter_min and asteroid.diameter_max %}
+            <div class="flex justify-between">
+                <span class="text-gray-300">Diameter:</span>
+                <span class="text-white">{{ asteroid.diameter_min|floatformat:3 }} - {{ asteroid.diameter_max|floatformat:3 }} km</span>
+            </div>
+            {% endif %}
+            
+            {% if asteroid.absolute_magnitude %}
+            <div class="flex justify-between">
+                <span class="text-gray-300">Absolute Magnitude:</span>
+                <span class="text-white">{{ asteroid.absolute_magnitude|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="flex justify-between">
+                <span class="text-gray-300">Potentially Hazardous:</span>
+                <span class="{% if asteroid.is_potentially_hazardous %}text-red-400{% else %}text-green-400{% endif %}">
+                    {% if asteroid.is_potentially_hazardous %}Yes ⚠️{% else %}No ✅{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Close Approaches -->
+    <div class="glass-effect rounded-lg p-6">
+        <h4 class="text-lg font-semibold text-cyan-400 mb-4">Upcoming Approaches</h4>
+        
+        {% if close_approaches %}
+        <div class="space-y-3 max-h-64 overflow-y-auto">
+            {% for approach in close_approaches %}
+            <div class="glass-effect p-3 rounded-lg">
+                <div class="flex justify-between items-start mb-1">
+                    <span class="text-white text-sm font-medium">{{ approach.approach_date|date:"M d, Y" }}</span>
+                    <span class="text-xs text-gray-400">{{ approach.approach_date|date:"H:i" }} UTC</span>
+                </div>
+                <div class="text-xs text-gray-300">
+                    <p>Distance: {{ approach.miss_distance_km|floatformat:0 }} km</p>
+                    <p>Velocity: {{ approach.velocity_kms|floatformat:2 }} km/s</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-400 text-center py-8">No close approach data available</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Orbit view for {{ asteroid.name }} - 3D visualization coming soon!');
+});
+</script>
+{% endblock %}

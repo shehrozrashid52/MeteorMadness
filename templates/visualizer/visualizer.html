@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}3D Visualizer - MeteorMatix{% endblock %}
+{% block page_title %}3D Asteroid Visualizer{% endblock %}
+
+{% block content %}
+<div class="glass-effect rounded-lg p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold text-cyan-400">Interactive 3D Solar System</h3>
+        <div class="flex space-x-2">
+            <button onclick="resetView()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white">
+                🔄 Reset View
+            </button>
+            <button onclick="toggleAnimation()" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white">
+                ⏸️ Pause
+            </button>
+        </div>
+    </div>
+    
+    <div id="visualizer-container" class="w-full h-96 bg-black rounded-lg overflow-hidden relative flex items-center justify-center">
+        <div class="text-center">
+            <div class="text-6xl mb-4 animate-spin">🌌</div>
+            <p class="text-cyan-400 text-xl">3D Solar System</p>
+            <p class="text-gray-400">Interactive visualization coming soon</p>
+        </div>
+        
+        <!-- Controls Overlay -->
+        <div class="absolute top-4 right-4 glass-effect p-3 rounded-lg">
+            <p class="text-xs text-cyan-400 mb-2">Future Features:</p>
+            <p class="text-xs text-gray-400">Mouse: Rotate view</p>
+            <p class="text-xs text-gray-400">Scroll: Zoom in/out</p>
+            <p class="text-xs text-gray-400">Click: Select asteroid</p>
+        </div>
+        
+        <!-- Info Panel -->
+        <div id="info-panel" class="absolute bottom-4 left-4 glass-effect p-3 rounded-lg hidden">
+            <p id="selected-name" class="text-cyan-400 font-semibold"></p>
+            <p id="selected-info" class="text-xs text-gray-400"></p>
+        </div>
+    </div>
+</div>
+
+<!-- Asteroid Selection -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div class="lg:col-span-1">
+        <div class="glass-effect rounded-lg p-6">
+            <h4 class="text-lg font-semibold text-cyan-400 mb-4">Select Asteroid</h4>
+            <div class="space-y-2 max-h-64 overflow-y-auto">
+                {% for asteroid in asteroids %}
+                <button onclick="focusAsteroid('{{ asteroid.neo_id }}', '{{ asteroid.name }}')" 
+                        class="w-full text-left p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                    <p class="text-white text-sm font-medium">{{ asteroid.name }}</p>
+                    <p class="text-gray-400 text-xs">ID: {{ asteroid.neo_id }}</p>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="lg:col-span-3">
+        <div class="glass-effect rounded-lg p-6">
+            <h4 class="text-lg font-semibold text-cyan-400 mb-4">Visualization Settings</h4>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm text-gray-300 mb-2">Animation Speed</label>
+                    <input type="range" id="speed-control" min="0.1" max="5" step="0.1" value="1" 
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>Slow</span>
+                        <span>Fast</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm text-gray-300 mb-2">Show Orbits</label>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="show-orbits" checked 
+                               class="text-cyan-400 focus:ring-cyan-400">
+                        <span class="text-white">Display orbital paths</span>
+                    </label>
+                </div>
+                
+                <div>
+                    <label class="block text-sm text-gray-300 mb-2">Show Labels</label>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="show-labels" checked 
+                               class="text-cyan-400 focus:ring-cyan-400">
+                        <span class="text-white">Display asteroid names</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function resetView() {
+    alert('3D visualization will be implemented in future updates!');
+}
+
+function toggleAnimation() {
+    const button = event.target;
+    if (button.textContent.includes('Pause')) {
+        button.textContent = '▶️ Play';
+    } else {
+        button.textContent = '⏸️ Pause';
+    }
+}
+
+function focusAsteroid(asteroidId, asteroidName) {
+    document.getElementById('selected-name').textContent = asteroidName;
+    document.getElementById('selected-info').textContent = `ID: ${asteroidId}`;
+    document.getElementById('info-panel').classList.remove('hidden');
+    
+    setTimeout(() => {
+        document.getElementById('info-panel').classList.add('hidden');
+    }, 3000);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Visualizer page loaded - 3D features coming soon!');
+});
+</script>
+{% endblock %}
